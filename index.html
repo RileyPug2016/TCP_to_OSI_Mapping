@@ -197,8 +197,12 @@
             currentStep = (currentStep + 1) % mapping.length;
         }
 
-        setInterval(animate, 3000);
-        animate(); // Initial call
+        // Add a 5-second delay before starting the animation.
+        setTimeout(() => {
+            setInterval(animate, 4500); // Slow down cycle by 50% (3000ms -> 4500ms)
+            animate(); // Initial call to show the first state immediately after the delay
+        }, 5000);
+
 
         function syncHeights() {
             // We use a timeout to ensure the DOM has rendered and elements have an accurate size
@@ -235,10 +239,4 @@
 
 </body>
 </html>
-
-
-
-
-
-
 
