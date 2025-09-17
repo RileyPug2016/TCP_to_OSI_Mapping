@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCP/IP vs OSI Model Animation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f4f8;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-around;
+            width: 90%;
+            max-width: 1000px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem; /* Reduced padding */
+            box-sizing: border-box;
+        }
+
+        .model-container {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .model-title {
+            text-align: center;
+            font-size: 1.25rem; /* Reduced font size */
+            font-weight: 700;
+            margin-bottom: 1rem; /* Reduced margin */
+            color: #333;
+        }
+
+        .layer {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 0.75rem; /* Reduced padding */
+            margin-bottom: 0.75rem; /* Reduced margin */
+            transition: all 0.5s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .layer-title {
+            font-weight: 700;
+            margin: 0;
+            color: #444;
+        }
+
+        .layer-description {
+            margin: 0.5rem 0 0 0;
+            color: #666;
+            height: 30px; /* Reduced height */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out; /* Only transition opacity */
+            font-size: 0.85rem; /* Reduced font size */
+        }
+
+        .color-group-0 { background-color: #e7f3fe; }
+        .color-group-1 { background-color: #e6f7e9; }
+        .color-group-2 { background-color: #fff8e1; }
+        .color-group-3 { background-color: #f3e5f5; }
+
+        .layer.active {
+            /* transform: scale(1.05); */
+            z-index: 10;
+            /* box-shadow: 0 8px 25px rgba(0,0,0,0.1); */ /* Removed base shadow */
+        }
+        
+        .layer.active.color-group-0 { 
+            border-color: #4a90e2; 
+            box-shadow: 0 0 15px 3px rgba(74, 144, 226, 0.4);
+        }
+        .layer.active.color-group-1 { 
+            border-color: #50c878; 
+            box-shadow: 0 0 15px 3px rgba(80, 200, 120, 0.4);
+        }
+        .layer.active.color-group-2 { 
+            border-color: #ffab40; 
+            box-shadow: 0 0 15px 3px rgba(255, 171, 64, 0.4);
+        }
+        .layer.active.color-group-3 { 
+            border-color: #ab47bc; 
+            box-shadow: 0 0 15px 3px rgba(171, 71, 188, 0.4);
+        }
+
+        .layer.active .layer-description {
+            opacity: 1;
+        }
+        
+        .mapping-line-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="model-container" id="tcp-model">
+            <h2 class="model-title">TCP/IP Model</h2>
+        </div>
+        <div class="model-container" id="osi-model">
+            <h2 class="model-title">OSI Model</h2>
+        </div>
+    </div>
+    <svg class="mapping-line-container" id="mapping-svg"></svg>
+
+
+    <script>
+        const tcpLayers = [
+            { name: 'Application', description: 'Provides network services to applications.' },
+            { name: 'Transport', description: 'Provides end-to-end data transfer.' },
+            { name: 'Internet', description: 'Routes packets across networks.' },
+            { name: 'Network Access', description: 'Handles physical network connection.' }
+        ];
+
+        const osiLayers = [
+            { name: 'Application', description: 'User interface and application services.' },
+            { name: 'Presentation', description: 'Data translation and encryption.' },
+            { name: 'Session', description: 'Manages sessions between applications.' },
+            { name: 'Transport', description: 'Reliable data transfer between hosts.' },
+            { name: 'Network', description: 'Logical addressing and routing.' },
+            { name: 'Data Link', description: 'Physical addressing and error checking.' },
+            { name: 'Physical', description: 'Transmits raw bit stream over media.' }
+        ];
+
+        const tcpContainer = document.getElementById('tcp-model');
+        const osiContainer = document.getElementById('osi-model');
+
+        const mapping = [
+            { tcp: 0, osi: [0, 1, 2] },
+            { tcp: 1, osi: [3] },
+            { tcp: 2, osi: [4] },
+            { tcp: 3, osi: [5, 6] }
+        ];
+
+        tcpLayers.forEach((layer, index) => {
+            const layerDiv = document.createElement('div');
+            layerDiv.classList.add('layer', `color-group-${index}`);
+            layerDiv.id = `tcp-layer-${index}`;
+            layerDiv.innerHTML = `<h3 class="layer-title">${layer.name}</h3><p class="layer-description">${layer.description}</p>`;
+            tcpContainer.appendChild(layerDiv);
+        });
+
+        osiLayers.forEach((layer, index) => {
+            const layerDiv = document.createElement('div');
+
+            const mappingData = mapping.find(m => m.osi.includes(index));
+            const group = mappingData ? mappingData.tcp : 0;
+
+            layerDiv.classList.add('layer', `color-group-${group}`);
+            layerDiv.id = `osi-layer-${index}`;
+            layerDiv.innerHTML = `<h3 class="layer-title">${layer.name}</h3><p class="layer-description">${layer.description}</p>`;
+            osiContainer.appendChild(layerDiv);
+        });
+
+        let currentStep = 0;
+
+        function animate() {
+            // Remove active classes from all layers
+            document.querySelectorAll('.layer').forEach(layer => {
+                layer.classList.remove('active');
+            });
+
+            const currentMapping = mapping[currentStep];
+            const tcpLayer = document.getElementById(`tcp-layer-${currentMapping.tcp}`);
+            tcpLayer.classList.add('active');
+
+            currentMapping.osi.forEach(osiIndex => {
+                const osiLayer = document.getElementById(`osi-layer-${osiIndex}`);
+                osiLayer.classList.add('active');
+            });
+
+            currentStep = (currentStep + 1) % mapping.length;
+        }
+
+        setInterval(animate, 3000);
+        animate(); // Initial call
+
+        function syncHeights() {
+            // We use a timeout to ensure the DOM has rendered and elements have an accurate size
+            setTimeout(() => {
+                mapping.forEach(map => {
+                    const tcpLayer = document.getElementById(`tcp-layer-${map.tcp}`);
+                    const tcpLayerStyle = window.getComputedStyle(tcpLayer);
+                    const tcpMarginBottom = parseInt(tcpLayerStyle.marginBottom, 10);
+
+                    let cumulativeHeightOfOsiGroup = 0;
+                    map.osi.forEach(osiIndex => {
+                        const osiLayer = document.getElementById(`osi-layer-${osiIndex}`);
+                        if (osiLayer) {
+                            const osiLayerStyle = window.getComputedStyle(osiLayer);
+                            const osiMarginBottom = parseInt(osiLayerStyle.marginBottom, 10);
+                            // Add the full size of the box (offsetHeight includes border and padding) plus its margin
+                            cumulativeHeightOfOsiGroup += osiLayer.offsetHeight + osiMarginBottom;
+                        }
+                    });
+
+                    // The target height for the TCP box is the total height of the OSI group,
+                    // minus the TCP box's own margin to make the visible boundaries align.
+                    const newTcpBoxHeight = cumulativeHeightOfOsiGroup - tcpMarginBottom;
+                    
+                    tcpLayer.style.height = `${newTcpBoxHeight}px`;
+                });
+            }, 0);
+        }
+
+        // Run the function on initial load and whenever the window is resized
+        window.addEventListener('load', syncHeights);
+        window.addEventListener('resize', syncHeights);
+    </script>
+
+</body>
+</html>
+
+
+
+
+
